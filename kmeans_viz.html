@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PulseMap · K-Means Equity Clustering</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    :root {
+      --bg: #f4f2ee;
+      --panel: #ffffff;
+      --ink: #36454f;
+      --muted: #6b7280;
+      --line: #e5e1db;
+      --low: #16a34a;
+      --moderate: #d97706;
+      --high: #dc2626;
+      --severe: #991b1b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, sans-serif;
+      background: radial-gradient(circle at top right, #faf8f5 0%, var(--bg) 55%);
+      color: var(--ink);
+    }
+
+    .shell {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 24px 20px 32px;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.55rem;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+      max-width: 640px;
+      line-height: 1.45;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 280px;
+      gap: 16px;
+    }
+
+    @media (max-width: 960px) {
+      .dashboard { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    }
+
+    .viz-card { padding: 14px 14px 10px; }
+
+    .controls {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .control-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    button {
+      border: none;
+      border-radius: 9px;
+      padding: 9px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 120ms ease, box-shadow 120ms ease, opacity 120ms ease;
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    button:not(:disabled):hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .btn-primary { background: var(--ink); color: #fff; }
+    .btn-secondary { background: #ebebeb; color: var(--ink); }
+
+    .speed-wrap {
+      display: grid;
+      gap: 6px;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--ink);
+    }
+
+    .status {
+      font-size: 0.82rem;
+      line-height: 1.45;
+      color: var(--muted);
+      min-height: 3.2em;
+    }
+
+    .status strong { color: var(--ink); }
+
+    .tier-legend {
+      display: grid;
+      gap: 8px;
+    }
+
+    .tier-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .tier-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .axis-label {
+      font-size: 11px;
+      fill: var(--muted);
+      font-weight: 600;
+    }
+
+    .centroid-label {
+      font-size: 10px;
+      font-weight: 700;
+      fill: var(--ink);
+      text-anchor: middle;
+      pointer-events: none;
+    }
+
+    .grid-line {
+      stroke: #ece8e2;
+      stroke-width: 1;
+    }
+
+    .point {
+      stroke: rgba(255, 255, 255, 0.85);
+      stroke-width: 0.6;
+    }
+
+    .centroid-ring {
+      fill: none;
+      stroke-width: 2.5;
+      pointer-events: none;
+    }
+
+    .centroid-core {
+      stroke: #fff;
+      stroke-width: 1.5;
+      pointer-events: none;
+    }
+
+    footer {
+      margin-top: 12px;
+      text-align: right;
+      font-size: 0.75rem;
+      color: #9ca3af;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div>
+        <h1>K-Means Equity Clustering</h1>
+        <p class="subtitle">
+          Lloyd's algorithm on a sample of U.S. ZIP codes using six SDOH rates
+          (Asthma, Diabetes, Uninsured, Obesity, Depression, Food Insecurity).
+          The chart shows Asthma × Diabetes; cluster distance uses all six dimensions.
+        </p>
+      </div>
+    </header>
+
+    <div class="dashboard">
+      <section class="card viz-card">
+        <svg id="viz" width="100%" height="560" role="img" aria-label="K-Means clustering visualization"></svg>
+      </section>
+
+      <aside class="card controls">
+        <div class="control-row">
+          <button id="run-btn" class="btn-primary" type="button">Run</button>
+          <button id="step-btn" class="btn-secondary" type="button">Step-by-Step</button>
+          <button id="reset-btn" class="btn-secondary" type="button">Reset</button>
+        </div>
+
+        <div class="speed-wrap">
+          <label for="speed-slider">Transition pace <span id="speed-label">1.0×</span></label>
+          <input id="speed-slider" type="range" min="0.4" max="2.2" step="0.1" value="1" />
+        </div>
+
+        <div class="status" id="status">Loading sample data…</div>
+
+        <div class="tier-legend">
+          <div class="tier-pill"><span class="tier-dot" style="background:var(--low)"></span>Low</div>
+          <div class="tier-pill"><span class="tier-dot" style="background:var(--moderate)"></span>Moderate</div>
+          <div class="tier-pill"><span class="tier-dot" style="background:var(--high)"></span>High</div>
+          <div class="tier-pill"><span class="tier-dot" style="background:var(--severe)"></span>Severe</div>
+        </div>
+      </aside>
+    </div>
+
+    <footer>PulseMap SDOH Advocate · GatorHack 2026 · Prioneer ML Track</footer>
+  </div>
+
+  <script>
+    const TIER_NAMES = ["Low", "Moderate", "High", "Severe"];
+    const ML_KEYS = ["a", "d", "u", "o", "dp", "fi"];
+    const TIER_COLORS = {
+      Low: "#16a34a",
+      Moderate: "#d97706",
+      High: "#dc2626",
+      Severe: "#991b1b",
+    };
+    const BASE_CENTROID_MS = 900;
+    const BASE_COLOR_MS = 500;
+    const K = 4;
+    const MAX_STEPS = 24;
+
+    const svg = d3.select("#viz");
+    const statusEl = document.getElementById("status");
+    const runBtn = document.getElementById("run-btn");
+    const stepBtn = document.getElementById("step-btn");
+    const resetBtn = document.getElementById("reset-btn");
+    const speedSlider = document.getElementById("speed-slider");
+    const speedLabel = document.getElementById("speed-label");
+
+    let width = 0;
+    let height = 0;
+    let margin = { top: 28, right: 24, bottom: 48, left: 56 };
+    let xScale;
+    let yScale;
+    let points = [];
+    let centroids = [];
+    let tierByCluster = {};
+    let iteration = 0;
+    let animating = false;
+    let autoRunning = false;
+    let initialSnapshot = null;
+
+    speedSlider.addEventListener("input", () => {
+      speedLabel.textContent = `${Number(speedSlider.value).toFixed(1)}×`;
+    });
+
+    function sleep(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    function transitionEnd(transition) {
+      return new Promise((resolve) => transition.on("end", resolve));
+    }
+
+    function dist6(a, b) {
+      return ML_KEYS.reduce((sum, key) => {
+        const delta = (a[key] || 0) - (b[key] || 0);
+        return sum + delta * delta;
+      }, 0);
+    }
+
+    function centroidSum(center) {
+      return ML_KEYS.reduce((sum, key) => sum + (center[key] || 0), 0);
+    }
+
+    function copyCentroid(source) {
+      const copy = {};
+      ML_KEYS.forEach((key) => {
+        copy[key] = source[key] || 0;
+      });
+      return copy;
+    }
+
+    function rankTiers(centers) {
+      const order = d3.range(centers.length).sort(
+        (i, j) => centroidSum(centers[i]) - centroidSum(centers[j])
+      );
+      const mapping = {};
+      order.forEach((clusterId, rank) => {
+        mapping[clusterId] = TIER_NAMES[rank];
+      });
+      return mapping;
+    }
+
+    function tierColor(clusterId) {
+      return TIER_COLORS[tierByCluster[clusterId] || "Moderate"];
+    }
+
+    function computeAssignments() {
+      return points.map((point) => {
+        let best = 0;
+        let bestDist = Infinity;
+        centroids.forEach((center, idx) => {
+          const dist = dist6(point, center);
+          if (dist < bestDist) {
+            bestDist = dist;
+            best = idx;
+          }
+        });
+        return best;
+      });
+    }
+
+    function computeCentroids(assignments) {
+      return d3.range(K).map((clusterId) => {
+        const members = points.filter((_, idx) => assignments[idx] === clusterId);
+        if (!members.length) {
+          return copyCentroid(centroids[clusterId]);
+        }
+        const next = {};
+        ML_KEYS.forEach((key) => {
+          next[key] = d3.mean(members, (d) => d[key] || 0);
+        });
+        return next;
+      });
+    }
+
+    function initCentroids(seedPoints) {
+      const shuffled = d3.shuffle([...seedPoints]);
+      return shuffled.slice(0, K).map((p) => copyCentroid(p));
+    }
+
+    function snapshotState() {
+      return {
+        points: points.map((p) => ({ ...p })),
+        centroids: centroids.map((c) => ({ ...c })),
+        tierByCluster: { ...tierByCluster },
+        iteration,
+      };
+    }
+
+    function restoreState(snapshot) {
+      points = snapshot.points.map((p) => ({ ...p }));
+      centroids = snapshot.centroids.map((c) => ({ ...c }));
+      tierByCluster = { ...snapshot.tierByCluster };
+      iteration = snapshot.iteration;
+      renderStatic();
+      updateStatus("Reset to initial random centroids.");
+    }
+
+    function setupScales() {
+      const innerW = width - margin.left - margin.right;
+      const innerH = height - margin.top - margin.bottom;
+      const asthmaExtent = d3.extent(points, (d) => d.a);
+      const diabetesExtent = d3.extent(points, (d) => d.d);
+
+      xScale = d3.scaleLinear()
+        .domain([asthmaExtent[0] - 0.6, asthmaExtent[1] + 0.6])
+        .range([0, innerW]);
+
+      yScale = d3.scaleLinear()
+        .domain([diabetesExtent[0] - 0.6, diabetesExtent[1] + 0.6])
+        .range([innerH, 0]);
+    }
+
+    function renderStatic() {
+      const root = svg.selectAll("g.root").data([0]);
+      const rootEnter = root.enter().append("g").attr("class", "root")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+      const g = rootEnter.merge(root);
+
+      g.selectAll(".grid-x").data([0]).join("g").attr("class", "grid-x")
+        .call(d3.axisBottom(xScale).ticks(8).tickSize(-(height - margin.top - margin.bottom)).tickFormat(""))
+        .call((sel) => sel.select(".domain").remove())
+        .call((sel) => sel.selectAll(".tick line").attr("class", "grid-line"));
+
+      g.selectAll(".grid-y").data([0]).join("g").attr("class", "grid-y")
+        .call(d3.axisLeft(yScale).ticks(8).tickSize(-(width - margin.left - margin.right)).tickFormat(""))
+        .call((sel) => sel.select(".domain").remove())
+        .call((sel) => sel.selectAll(".tick line").attr("class", "grid-line"));
+
+      g.selectAll(".axis-x").data([0]).join("g").attr("class", "axis-x")
+        .attr("transform", `translate(0,${height - margin.top - margin.bottom})`)
+        .call(d3.axisBottom(xScale).ticks(8));
+
+      g.selectAll(".axis-y").data([0]).join("g").attr("class", "axis-y")
+        .call(d3.axisLeft(yScale).ticks(8));
+
+      g.selectAll(".x-label").data([0]).join("text").attr("class", "axis-label x-label")
+        .attr("x", (width - margin.left - margin.right) / 2)
+        .attr("y", height - margin.top - margin.bottom + 38)
+        .attr("text-anchor", "middle")
+        .text("Asthma rate (%)");
+
+      g.selectAll(".y-label").data([0]).join("text").attr("class", "axis-label y-label")
+        .attr("transform", "rotate(-90)")
+        .attr("x", -(height - margin.top - margin.bottom) / 2)
+        .attr("y", -42)
+        .attr("text-anchor", "middle")
+        .text("Diabetes rate (%)");
+
+      const pointSel = g.selectAll(".point").data(points, (d) => d.id);
+      pointSel.enter().append("circle")
+        .attr("class", "point")
+        .attr("r", 3.2)
+        .attr("cx", (d) => xScale(d.a))
+        .attr("cy", (d) => yScale(d.d))
+        .attr("fill", (d) => tierColor(d.cluster))
+        .merge(pointSel)
+        .attr("cx", (d) => xScale(d.a))
+        .attr("cy", (d) => yScale(d.d))
+        .attr("fill", (d) => tierColor(d.cluster));
+
+      const centroidSel = g.selectAll(".centroid-group").data(centroids, (_, i) => i);
+      const centroidEnter = centroidSel.enter().append("g").attr("class", "centroid-group");
+
+      centroidEnter.append("circle")
+        .attr("class", "centroid-ring")
+        .attr("r", 14);
+
+      centroidEnter.append("circle")
+        .attr("class", "centroid-core")
+        .attr("r", 5.5);
+
+      centroidEnter.append("text")
+        .attr("class", "centroid-label")
+        .attr("dy", -18);
+
+      const centroidMerged = centroidEnter.merge(centroidSel);
+
+      centroidMerged.select(".centroid-ring")
+        .attr("cx", (d) => xScale(d.a))
+        .attr("cy", (d) => yScale(d.d))
+        .attr("stroke", (_, i) => tierColor(i));
+
+      centroidMerged.select(".centroid-core")
+        .attr("cx", (d) => xScale(d.a))
+        .attr("cy", (d) => yScale(d.d))
+        .attr("fill", (_, i) => tierColor(i));
+
+      centroidMerged.select(".centroid-label")
+        .attr("x", (d) => xScale(d.a))
+        .attr("y", (d) => yScale(d.d))
+        .text((_, i) => tierByCluster[i] || "");
+    }
+
+    async function animateIteration(nextAssignments, nextCentroids, nextTierMap) {
+      const speed = Number(speedSlider.value);
+      const centroidDuration = BASE_CENTROID_MS / speed;
+      const colorDuration = BASE_COLOR_MS / speed;
+      const g = svg.select("g.root");
+
+      const centroidGroups = g.selectAll(".centroid-group");
+
+      const centroidTransition = centroidGroups
+        .data(nextCentroids, (_, i) => i)
+        .select(".centroid-ring")
+        .transition("centroid-glide")
+        .duration(centroidDuration)
+        .ease(d3.easeCubicInOut)
+        .attr("cx", (d) => xScale(d.a))
+        .attr("cy", (d) => yScale(d.d))
+        .attr("stroke", (_, i) => TIER_COLORS[nextTierMap[i]]);
+
+      centroidGroups
+        .select(".centroid-core")
+        .transition("centroid-core-glide")
+        .duration(centroidDuration)
+        .ease(d3.easeCubicInOut)
+        .attr("cx", (d) => xScale(d.a))
+        .attr("cy", (d) => yScale(d.d))
+        .attr("fill", (_, i) => TIER_COLORS[nextTierMap[i]]);
+
+      centroidGroups
+        .select(".centroid-label")
+        .transition("centroid-label-glide")
+        .duration(centroidDuration)
+        .ease(d3.easeCubicInOut)
+        .attr("x", (d) => xScale(d.a))
+        .attr("y", (d) => yScale(d.d))
+        .textTween((_, i) => () => nextTierMap[i]);
+
+      const pointNodes = g.selectAll(".point").nodes();
+      const colorPromises = pointNodes.map((node, idx) => {
+        const selection = d3.select(node);
+        const startColor = selection.attr("fill") || TIER_COLORS.Moderate;
+        const endColor = TIER_COLORS[nextTierMap[nextAssignments[idx]]];
+        return transitionEnd(
+          selection
+            .transition(`point-color-${idx}`)
+            .duration(colorDuration)
+            .ease(d3.easeQuad)
+            .attrTween("fill", () => (t) => d3.interpolateRgb(startColor, endColor)(t))
+        );
+      });
+
+      await Promise.all([transitionEnd(centroidTransition), ...colorPromises]);
+
+      points.forEach((point, idx) => {
+        point.cluster = nextAssignments[idx];
+      });
+      centroids = nextCentroids;
+      tierByCluster = nextTierMap;
+    }
+
+    function assignmentsChanged(prev, next) {
+      return next.some((value, idx) => value !== prev[idx]);
+    }
+
+    function centroidsChanged(prev, next) {
+      return next.some((center, idx) => {
+        const old = prev[idx];
+        return ML_KEYS.some((key) => Math.abs((center[key] || 0) - (old[key] || 0)) > 0.01);
+      });
+    }
+
+    function updateStatus(message) {
+      statusEl.innerHTML = message;
+    }
+
+    function setControlsDisabled(disabled) {
+      runBtn.disabled = disabled;
+      stepBtn.disabled = disabled;
+      resetBtn.disabled = disabled;
+      speedSlider.disabled = disabled;
+    }
+
+    async function runSingleStep() {
+      if (animating || iteration >= MAX_STEPS) return false;
+
+      const prevAssignments = points.map((p) => p.cluster);
+      const nextAssignments = computeAssignments();
+      const nextCentroids = computeCentroids(nextAssignments);
+      const nextTierMap = rankTiers(nextCentroids);
+
+      const changedAssignments = assignmentsChanged(prevAssignments, nextAssignments);
+      const changedCentroids = centroidsChanged(centroids, nextCentroids);
+
+      if (!changedAssignments && !changedCentroids) {
+        updateStatus(`<strong>Converged</strong> at iteration ${iteration}. Tier mapping is stable.`);
+        return false;
+      }
+
+      animating = true;
+      setControlsDisabled(true);
+      iteration += 1;
+
+      updateStatus(
+        `<strong>Iteration ${iteration}</strong> — centroids gliding (${BASE_CENTROID_MS}ms base) `
+        + `while colors ease (${BASE_COLOR_MS}ms base) at ${Number(speedSlider.value).toFixed(1)}× pace.`
+      );
+
+      await animateIteration(nextAssignments, nextCentroids, nextTierMap);
+
+      const reassigned = nextAssignments.filter((c, i) => c !== prevAssignments[i]).length;
+      updateStatus(
+        `<strong>Iteration ${iteration} complete.</strong> ${reassigned} points shifted tier. `
+        + `Click <em>Step-by-Step</em> or <em>Run</em> to continue.`
+      );
+
+      animating = false;
+      setControlsDisabled(false);
+      return true;
+    }
+
+    async function runToConvergence() {
+      if (animating || autoRunning) return;
+      autoRunning = true;
+      setControlsDisabled(true);
+
+      let progressed = true;
+      while (progressed && iteration < MAX_STEPS) {
+        progressed = await runSingleStep();
+        if (progressed) await sleep(80);
+      }
+
+      autoRunning = false;
+      setControlsDisabled(false);
+    }
+
+    function resize() {
+      const bounds = svg.node().getBoundingClientRect();
+      width = Math.max(640, Math.floor(bounds.width));
+      height = 560;
+      svg.attr("viewBox", `0 0 ${width} ${height}`);
+      setupScales();
+      renderStatic();
+    }
+
+    async function bootstrap(rawPoints) {
+      points = rawPoints.map((p) => {
+        const point = { ...p, cluster: 0 };
+        ML_KEYS.forEach((key) => {
+          if (point[key] == null) point[key] = 0;
+        });
+        return point;
+      });
+      centroids = initCentroids(points);
+      tierByCluster = rankTiers(centroids);
+
+      points.forEach((point) => {
+        let best = 0;
+        let bestDist = Infinity;
+        centroids.forEach((center, idx) => {
+          const dist = dist6(point, center);
+          if (dist < bestDist) {
+            bestDist = dist;
+            best = idx;
+          }
+        });
+        point.cluster = best;
+      });
+
+      iteration = 0;
+      resize();
+      initialSnapshot = snapshotState();
+      updateStatus(
+        `Loaded <strong>${points.length}</strong> ZIP samples. `
+        + `Use <strong>Run</strong> for auto convergence or <strong>Step-by-Step</strong> for manual pacing.`
+      );
+    }
+
+    runBtn.addEventListener("click", () => runToConvergence());
+    stepBtn.addEventListener("click", () => runSingleStep());
+    resetBtn.addEventListener("click", () => {
+      if (!initialSnapshot || animating) return;
+      autoRunning = false;
+      restoreState(initialSnapshot);
+    });
+
+    window.addEventListener("resize", () => {
+      if (!points.length) return;
+      resize();
+    });
+
+    fetch("kmeans_viz_data.json")
+      .then((response) => {
+        if (!response.ok) throw new Error("Missing kmeans_viz_data.json — run python3 main.py first.");
+        return response.json();
+      })
+      .then((data) => bootstrap(data.points))
+      .catch((error) => {
+        updateStatus(error.message);
+      });
+  </script>
+</body>
+</html>
