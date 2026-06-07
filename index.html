@@ -3,12 +3,262 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>PulseMap SDOH Advocate</title>
-  <meta http-equiv="refresh" content="0; url=health_map.html" />
-  <link rel="canonical" href="health_map.html" />
-  <script>window.location.replace("health_map.html");</script>
+  <title>PulseMap SDOH Advocate · GatorHack 2026</title>
+  <meta name="description" content="Nationwide ZIP-level health equity map with K-Means clustering and evidence-based SDOH action guides." />
+  <style>
+    :root {
+      --ink: #36454F;
+      --paper: #faf8f5;
+      --muted: #6b7280;
+      --accent: #2f6b3a;
+      --accent-soft: #f4f7f4;
+      --line: #e8e0d5;
+      --warm: #78350f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, sans-serif;
+      color: #333;
+      background: linear-gradient(180deg, #f0ece6 0%, var(--paper) 320px);
+      line-height: 1.6;
+    }
+    .wrap {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 32px 20px 56px;
+    }
+    .hero {
+      background: var(--ink);
+      color: #fff;
+      border-radius: 16px;
+      padding: 28px 28px 24px;
+      margin-bottom: 28px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14);
+    }
+    .hero h1 {
+      margin: 0 0 10px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(1.6rem, 4vw, 2.1rem);
+      line-height: 1.15;
+    }
+    .hero .lead {
+      margin: 0;
+      max-width: 640px;
+      opacity: 0.93;
+      font-size: 1rem;
+    }
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 5px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    .section-title {
+      margin: 0 0 14px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 20px 20px 18px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+    .card-icon {
+      font-size: 1.6rem;
+      margin-bottom: 8px;
+    }
+    .card h2 {
+      margin: 0 0 8px;
+      font-size: 1.12rem;
+      color: var(--ink);
+    }
+    .card p {
+      margin: 0 0 16px;
+      flex: 1;
+      font-size: 0.92rem;
+      color: #555;
+    }
+    .card a.btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 14px;
+      border-radius: 9px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.88rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: background 0.15s ease;
+    }
+    .card a.btn:hover { background: #256832; }
+    .card.primary {
+      border-color: #c8dcc8;
+      background: linear-gradient(180deg, #fff 0%, var(--accent-soft) 100%);
+    }
+    .card.primary a.btn {
+      background: var(--ink);
+    }
+    .card.primary a.btn:hover { background: #2a383f; }
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+    .flow-step {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 0.9rem;
+    }
+    .flow-step strong {
+      display: block;
+      color: var(--accent);
+      margin-bottom: 4px;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .metrics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 32px;
+    }
+    .metric-pill {
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: #fff;
+      border: 1px solid var(--line);
+      font-size: 0.84rem;
+      color: var(--warm);
+    }
+    .footer {
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+    .footer a {
+      color: var(--ink);
+      font-weight: 600;
+    }
+    @media (max-width: 720px) {
+      .flow { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
-  <p>Opening PulseMap… <a href="health_map.html">Click here if you are not redirected.</a></p>
+  <div class="wrap">
+    <header class="hero">
+      <h1>PulseMap SDOH Advocate</h1>
+      <p class="lead">
+        A nationwide health-equity tool for GatorHack 2026. Machine learning surfaces
+        high-burden ZIP codes across six SDOH indicators, then links each community
+        to evidence-based steps residents and advocates can use.
+      </p>
+      <div class="badges">
+        <span class="badge">The Prioneer · AI for Social Good</span>
+        <span class="badge">Women in Tech</span>
+        <span class="badge">29,980 U.S. ZIP codes</span>
+      </div>
+    </header>
+
+    <p class="section-title">Explore the project</p>
+    <div class="cards">
+      <article class="card primary">
+        <div class="card-icon">🗺️</div>
+        <h2>Interactive Map</h2>
+        <p>
+          Search any ZIP, city, or state. Click markers for community profiles,
+          top concerns, K-Means equity tiers, and suggested actions.
+        </p>
+        <a class="btn" href="health_map.html">Open PulseMap →</a>
+      </article>
+
+      <article class="card">
+        <div class="card-icon">📋</div>
+        <h2>Action Guide</h2>
+        <p>
+          Evidence-based steps for all six metrics, with curated sources and
+          links to APA therapy finder and USDA nutrition programs.
+        </p>
+        <a class="btn" href="action_guide.html">Read Action Guide →</a>
+      </article>
+
+      <article class="card">
+        <div class="card-icon">🤖</div>
+        <h2>K-Means Visualization</h2>
+        <p>
+          Animated view of how scikit-learn clusters ZIP codes into four equity
+          tiers from Low Risk to Severe Disparity.
+        </p>
+        <a class="btn" href="kmeans_viz.html">View ML Demo →</a>
+      </article>
+    </div>
+
+    <p class="section-title">How it works</p>
+    <div class="flow">
+      <div class="flow-step">
+        <strong>1 · Detect</strong>
+        K-Means on six SDOH rates clusters ~30,000 ZIP codes into equity tiers.
+      </div>
+      <div class="flow-step">
+        <strong>2 · Prioritize</strong>
+        Each popup highlights the top two local concerns above the U.S. median.
+      </div>
+      <div class="flow-step">
+        <strong>3 · Act</strong>
+        Evidence-based steps connect food, coverage, and chronic-disease risks.
+      </div>
+    </div>
+
+    <p class="section-title">Six health indicators</p>
+    <div class="metrics">
+      <span class="metric-pill">🫁 Asthma</span>
+      <span class="metric-pill">🩸 Diabetes</span>
+      <span class="metric-pill">🛡️ Uninsured</span>
+      <span class="metric-pill">⚖️ Obesity</span>
+      <span class="metric-pill">🧠 Depression</span>
+      <span class="metric-pill">🍎 Food Insecurity</span>
+    </div>
+
+    <footer class="footer">
+      GatorHack 2026 ·
+      <a href="https://github.com/stephanie313/GatorHacks26" target="_blank" rel="noopener">View on GitHub</a>
+    </footer>
+  </div>
 </body>
 </html>

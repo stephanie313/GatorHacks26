@@ -4,11 +4,10 @@ Nationwide ZIP-level health equity map with K-Means clustering and evidence-base
 
 ## Live demo
 
+- **Home:** https://stephanie313.github.io/GatorHacks26/
 - **Map:** https://stephanie313.github.io/GatorHacks26/health_map.html
 - **Action guide:** https://stephanie313.github.io/GatorHacks26/action_guide.html
 - **K-Means viz:** https://stephanie313.github.io/GatorHacks26/kmeans_viz.html
-
-The site root redirects to the map automatically.
 
 ## Run locally
 
