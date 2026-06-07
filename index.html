@@ -1,264 +1,854 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>PulseMap SDOH Advocate · GatorHack 2026</title>
-  <meta name="description" content="Nationwide ZIP-level health equity map with K-Means clustering and evidence-based SDOH action guides." />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Public Health Dashboard Map · PulseMap SDOH Advocate</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet" />
   <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     :root {
-      --ink: #36454F;
-      --paper: #faf8f5;
-      --muted: #6b7280;
-      --accent: #2f6b3a;
-      --accent-soft: #f4f7f4;
-      --line: #e8e0d5;
-      --warm: #78350f;
+      --green-dark:   #1d3b1a;
+      --green-mid:    #2d5a27;
+      --green-soft:   #4a9e3f;
+      --green-pale:   #d8f0d4;
+      --green-faint:  #f0f9ee;
+      --terra:        #e05c2e;
+      --terra-mid:    #c84e1c;
+      --terra-pale:   #fdf0eb;
+      --terra-border: #f5c8b0;
+      --amber:        #e8a040;
+      --ink:          #1a1a18;
+      --ink-2:        #4a4a46;
+      --ink-3:        #8a8a84;
+      --surface:      #faf8f5;
+      --surface-2:    #f3efe9;
+      --border:       rgba(0,0,0,0.08);
+      --border-md:    rgba(0,0,0,0.13);
+      --radius-sm:    6px;
+      --radius-md:    10px;
+      --radius-lg:    14px;
     }
-    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
     body {
-      margin: 0;
-      font-family: Inter, system-ui, sans-serif;
-      color: #333;
-      background: linear-gradient(180deg, #f0ece6 0%, var(--paper) 320px);
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: var(--surface);
+      color: var(--ink);
+      font-size: 16px;
       line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
     }
-    .wrap {
-      max-width: 920px;
-      margin: 0 auto;
-      padding: 32px 20px 56px;
+
+    a { color: inherit; }
+
+    /* ── NAV ── */
+    .nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 40px; height: 60px;
+      background: rgba(250,248,245,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
     }
+
+    .nav-logo {
+      display: flex; align-items: center; gap: 9px;
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: 18px; font-weight: 400;
+      text-decoration: none; color: var(--ink);
+      letter-spacing: -0.3px;
+      max-width: min(52vw, 320px);
+      line-height: 1.2;
+    }
+
+    .nav-dot {
+      width: 11px; height: 11px; border-radius: 50%;
+      background: var(--terra);
+      animation: breathe 3s ease-in-out infinite;
+    }
+
+    @keyframes breathe {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.2); opacity: 0.8; }
+    }
+
+    .nav-links {
+      display: flex; align-items: center; gap: 28px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 13.5px; color: var(--ink-2);
+      text-decoration: none; font-weight: 400;
+      transition: color 0.15s;
+    }
+
+    .nav-links a:hover { color: var(--ink); }
+
+    .nav-actions { display: flex; gap: 10px; align-items: center; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 9px 20px; border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13.5px; font-weight: 500;
+      cursor: pointer; text-decoration: none;
+      border: none; transition: all 0.15s; white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--green-mid); color: #fff;
+      box-shadow: 0 1px 3px rgba(45,90,39,0.25);
+    }
+    .btn-primary:hover { background: #22441e; box-shadow: 0 2px 8px rgba(45,90,39,0.3); }
+
+    .btn-outline {
+      background: transparent; color: var(--ink);
+      border: 1px solid var(--border-md);
+    }
+    .btn-outline:hover { background: var(--surface-2); }
+
+    /* ── HERO ── */
     .hero {
-      background: var(--ink);
-      color: #fff;
-      border-radius: 16px;
-      padding: 28px 28px 24px;
-      margin-bottom: 28px;
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14);
+      max-width: 1080px; margin: 0 auto;
+      padding: 80px 40px 64px;
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 56px; align-items: center;
     }
+
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 11px; font-weight: 600; letter-spacing: 1.3px;
+      text-transform: uppercase; color: var(--terra-mid);
+      background: var(--terra-pale); border: 1px solid var(--terra-border);
+      padding: 5px 13px; border-radius: 20px;
+      margin-bottom: 22px;
+    }
+
+    .hero-eyebrow-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--terra-mid);
+    }
+
     .hero h1 {
-      margin: 0 0 10px;
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: clamp(1.6rem, 4vw, 2.1rem);
-      line-height: 1.15;
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: 48px; line-height: 1.1; font-weight: 400;
+      letter-spacing: -1px; margin-bottom: 22px;
     }
-    .hero .lead {
-      margin: 0;
-      max-width: 640px;
-      opacity: 0.93;
-      font-size: 1rem;
+
+    .hero h1 em {
+      font-style: italic; color: var(--green-mid);
     }
-    .badges {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 16px;
+
+    .hero-sub {
+      font-size: 15.5px; line-height: 1.75;
+      color: var(--ink-2); margin-bottom: 32px;
+      font-weight: 300; max-width: 480px;
     }
-    .badge {
-      display: inline-block;
-      padding: 5px 12px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.12);
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      font-size: 0.78rem;
-      font-weight: 600;
-      letter-spacing: 0.2px;
+
+    .hero-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+    .hero-btns .btn { font-size: 14.5px; padding: 12px 24px; }
+
+    /* ── MAP MOCK ── */
+    .map-mock {
+      position: relative; border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      background: #ede8df;
+      aspect-ratio: 4 / 3;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06);
     }
-    .section-title {
-      margin: 0 0 14px;
-      font-size: 0.82rem;
-      font-weight: 700;
-      letter-spacing: 0.6px;
-      text-transform: uppercase;
-      color: var(--muted);
+
+    .map-inner {
+      width: 100%; height: 100%;
+      background:
+        radial-gradient(ellipse at 32% 62%, rgba(224,92,46,0.15) 0%, transparent 48%),
+        radial-gradient(ellipse at 68% 34%, rgba(45,90,39,0.18) 0%, transparent 52%),
+        radial-gradient(ellipse at 54% 72%, rgba(224,92,46,0.10) 0%, transparent 38%),
+        #e8e2d8;
     }
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 16px;
-      margin-bottom: 32px;
+
+    .map-dot {
+      position: absolute; border-radius: 50%;
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.5);
+      animation: dot-pulse 3s ease-in-out infinite;
     }
-    .card {
-      background: #fff;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 20px 20px 18px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
-      display: flex;
-      flex-direction: column;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+    @keyframes dot-pulse {
+      0%, 100% { transform: scale(1); opacity: 0.88; }
+      50%       { transform: scale(1.18); opacity: 1; }
     }
-    .card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+
+    .map-legend {
+      position: absolute; bottom: 12px; left: 12px;
+      display: flex; gap: 7px;
     }
-    .card-icon {
-      font-size: 1.6rem;
+
+    .legend-pill {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 10.5px; font-weight: 500; color: #4a3c28;
+      background: rgba(255,255,255,0.88);
+      padding: 4px 10px; border-radius: 20px;
+      border: 1px solid rgba(0,0,0,0.08);
+      backdrop-filter: blur(6px);
+    }
+
+    .legend-dot { width: 7px; height: 7px; border-radius: 50%; }
+
+    .map-counter {
+      position: absolute; top: 12px; right: 12px;
+      background: rgba(255,255,255,0.92);
+      border: 1px solid rgba(0,0,0,0.09);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      backdrop-filter: blur(8px);
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .map-counter-num {
+      font-family: 'DM Serif Display', serif;
+      font-size: 20px; color: var(--green-dark);
+      line-height: 1; display: block; font-weight: 400;
+    }
+
+    .map-counter-label {
+      font-size: 10.5px; color: var(--ink-3); margin-top: 2px; display: block;
+    }
+
+    /* ── STAT STRIP ── */
+    .stat-strip {
+      background: var(--green-dark);
+    }
+
+    .stat-strip-inner {
+      max-width: 1080px; margin: 0 auto;
+      padding: 24px 40px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .stat-item {
+      text-align: center; padding: 0 40px;
+      border-right: 1px solid rgba(255,255,255,0.10);
+    }
+    .stat-item:last-child { border-right: none; }
+
+    .stat-num {
+      font-family: 'DM Serif Display', serif;
+      font-size: 30px; font-weight: 400;
+      color: var(--green-pale); display: block; line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 11px; color: rgba(216,240,212,0.55);
+      letter-spacing: 0.3px; margin-top: 5px; display: block;
+    }
+
+    /* ── SECTIONS ── */
+    .section {
+      max-width: 1080px; margin: 0 auto;
+      padding: 72px 40px;
+    }
+
+    .section-label {
+      font-size: 10.5px; font-weight: 600; letter-spacing: 1.5px;
+      text-transform: uppercase; color: var(--ink-3);
       margin-bottom: 8px;
     }
-    .card h2 {
-      margin: 0 0 8px;
-      font-size: 1.12rem;
-      color: var(--ink);
+
+    .section h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 34px; font-weight: 400; line-height: 1.2;
+      letter-spacing: -0.5px; margin-bottom: 12px;
     }
-    .card p {
-      margin: 0 0 16px;
-      flex: 1;
-      font-size: 0.92rem;
-      color: #555;
+
+    .section-sub {
+      font-size: 14.5px; color: var(--ink-2);
+      line-height: 1.7; margin-bottom: 44px;
+      max-width: 580px; font-weight: 300;
     }
-    .card a.btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      padding: 10px 14px;
-      border-radius: 9px;
-      background: var(--accent);
-      color: #fff;
-      font-size: 0.88rem;
-      font-weight: 700;
+
+    .divider {
+      height: 1px; background: var(--border);
+      max-width: 1080px; margin: 0 auto;
+    }
+
+    /* ── TABLE ── */
+    .table-wrap {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .data-table {
+      width: 100%; border-collapse: collapse;
+      font-size: 13.5px;
+    }
+
+    .data-table thead th {
+      background: var(--surface-2);
+      padding: 13px 18px; text-align: left;
+      font-size: 10.5px; font-weight: 600;
+      letter-spacing: 0.9px; text-transform: uppercase;
+      color: var(--ink-3);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .data-table tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.1s;
+    }
+    .data-table tbody tr:last-child { border-bottom: none; }
+    .data-table tbody tr:hover { background: var(--surface-2); }
+
+    .data-table td {
+      padding: 14px 18px; color: var(--ink);
+      vertical-align: middle;
+    }
+
+    .data-table .indicator-name { font-weight: 500; }
+
+    .rate-badge {
+      display: inline-block; padding: 4px 12px;
+      border-radius: 20px; font-weight: 600; font-size: 12.5px;
+    }
+
+    .rate-low  { background: #eaf6e8; color: #2a5e25; border: 1px solid #b3ddb0; }
+    .rate-mid  { background: #fef6e4; color: #7a4e0d; border: 1px solid #f5d68a; }
+    .rate-high { background: #fef0ec; color: #8c2a10; border: 1px solid #f5b89e; }
+    .rate-vhigh{ background: #fce8e8; color: #7a1515; border: 1px solid #f0a0a0; }
+
+    .muted { color: var(--ink-3); }
+
+    /* ── PROBLEM CARDS ── */
+    .problem-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;
+    }
+
+    .problem-card {
+      padding: 26px 22px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      background: #fff;
+      border-top: 3px solid transparent;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .problem-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    }
+
+    .problem-card.asthma   { border-top-color: #4a8fc7; }
+    .problem-card.diabetes { border-top-color: var(--terra); }
+    .problem-card.coverage { border-top-color: #2d8a6a; }
+
+    .problem-emoji { font-size: 26px; margin-bottom: 14px; display: block; }
+
+    .problem-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 17px; font-weight: 400; margin-bottom: 8px;
+    }
+
+    .problem-text {
+      font-size: 13px; color: var(--ink-2);
+      line-height: 1.7; font-weight: 300;
+    }
+
+    /* ── HOW IT WORKS ── */
+    .steps {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .step {
+      padding: 32px 28px;
+      border-right: 1px solid var(--border);
+      position: relative;
+      background: #fff;
+      transition: background 0.15s;
+    }
+
+    .step:hover { background: var(--surface-2); }
+    .step:last-child { border-right: none; }
+
+    .step-num {
+      font-family: 'DM Serif Display', serif;
+      font-size: 44px; color: var(--border-md);
+      line-height: 1; margin-bottom: 14px; display: block;
+      font-weight: 400; color: #d0c8be;
+    }
+
+    .step-title {
+      font-size: 14.5px; font-weight: 600; margin-bottom: 10px;
+    }
+
+    .step-text {
+      font-size: 13px; color: var(--ink-2);
+      line-height: 1.7; font-weight: 300;
+    }
+
+    .step-arrow {
+      position: absolute; right: -12px; top: 50%;
+      transform: translateY(-50%);
+      width: 22px; height: 22px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1; font-size: 11px; color: var(--ink-3);
+    }
+
+    /* ── SOLUTION CARDS ── */
+    .solutions-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;
+    }
+
+    .sol-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden; background: #fff;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .sol-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.09);
+    }
+
+    .sol-header {
+      padding: 22px 20px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sol-tag {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.9px;
+      text-transform: uppercase; margin-bottom: 9px; display: block;
+    }
+
+    .sol-card:nth-child(1) .sol-tag { color: #2a5a8a; }
+    .sol-card:nth-child(2) .sol-tag { color: #7a3515; }
+    .sol-card:nth-child(3) .sol-tag { color: #1a6048; }
+
+    .sol-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 16px; font-weight: 400; line-height: 1.35;
+    }
+
+    .sol-body { padding: 16px 20px 18px; }
+
+    .sol-sub {
+      font-size: 12.5px; color: var(--ink-2);
+      line-height: 1.65; font-weight: 300; margin-bottom: 16px;
+    }
+
+    .sol-link {
+      font-size: 12.5px; font-weight: 600; color: var(--ink);
       text-decoration: none;
-      transition: background 0.15s ease;
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 7px 14px; border: 1px solid var(--border-md);
+      border-radius: var(--radius-sm);
+      transition: all 0.15s;
     }
-    .card a.btn:hover { background: #256832; }
-    .card.primary {
-      border-color: #c8dcc8;
-      background: linear-gradient(180deg, #fff 0%, var(--accent-soft) 100%);
+    .sol-link:hover { background: var(--surface-2); gap: 8px; }
+
+    /* ── CTA DARK ── */
+    .cta-dark {
+      background: var(--green-dark);
+      margin-top: 0;
     }
-    .card.primary a.btn {
-      background: var(--ink);
+
+    .cta-dark-inner {
+      max-width: 700px; margin: 0 auto;
+      padding: 80px 40px; text-align: center;
     }
-    .card.primary a.btn:hover { background: #2a383f; }
-    .flow {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin-bottom: 32px;
+
+    .cta-dark h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 38px; font-weight: 400;
+      color: var(--green-pale);
+      line-height: 1.2; margin-bottom: 16px;
+      letter-spacing: -0.5px;
     }
-    .flow-step {
-      background: #fff;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 14px 16px;
-      font-size: 0.9rem;
+
+    .cta-dark h2 em {
+      font-style: italic; color: #a8dfa0;
     }
-    .flow-step strong {
-      display: block;
-      color: var(--accent);
-      margin-bottom: 4px;
-      font-size: 0.82rem;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
+
+    .cta-dark p {
+      font-size: 14.5px; color: rgba(216,240,212,0.58);
+      line-height: 1.75; margin-bottom: 32px;
+      font-weight: 300;
     }
-    .metrics {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 32px;
+
+    .btn-green-light {
+      background: var(--green-soft); color: #fff;
+      font-size: 15px; padding: 13px 30px;
+      box-shadow: 0 2px 12px rgba(74,158,63,0.35);
     }
-    .metric-pill {
-      padding: 6px 12px;
-      border-radius: 999px;
-      background: #fff;
-      border: 1px solid var(--line);
-      font-size: 0.84rem;
-      color: var(--warm);
+    .btn-green-light:hover {
+      background: #3d8835;
+      box-shadow: 0 4px 18px rgba(74,158,63,0.4);
     }
+
+    /* ── FOOTER ── */
     .footer {
-      padding-top: 20px;
-      border-top: 1px solid var(--line);
-      font-size: 0.88rem;
-      color: var(--muted);
+      border-top: 1px solid var(--border);
+      padding: 22px 40px;
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--surface);
     }
-    .footer a {
-      color: var(--ink);
-      font-weight: 600;
+
+    .footer-text { font-size: 12px; color: var(--ink-3); }
+    .footer-text strong { color: var(--ink-2); }
+
+    .track-badges { display: flex; gap: 8px; }
+
+    .track-badge {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.5px;
+      text-transform: uppercase;
+      padding: 5px 11px; border-radius: 20px; border: 1px solid;
     }
-    @media (max-width: 720px) {
-      .flow { grid-template-columns: 1fr; }
+
+    .track-badge.ai   { color: #2a4fa0; background: #eef2fc; border-color: #b8c8f0; }
+    .track-badge.wit  { color: #7a1a5a; background: #fcedf7; border-color: #f0b0dc; }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fade-up {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-up { animation: fade-up 0.65s ease both; }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.35s; }
+    .delay-4 { animation-delay: 0.5s; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .nav { padding: 0 20px; }
+      .nav-links { display: none; }
+      .hero { grid-template-columns: 1fr; padding: 40px 20px; gap: 36px; }
+      .hero h1 { font-size: 34px; }
+      .problem-grid,
+      .solutions-grid { grid-template-columns: 1fr; }
+      .steps { grid-template-columns: 1fr; }
+      .step { border-right: none; border-bottom: 1px solid var(--border); }
+      .step:last-child { border-bottom: none; }
+      .step-arrow { display: none; }
+      .stat-strip-inner { flex-wrap: wrap; gap: 20px; }
+      .stat-item { border-right: none; padding: 0 20px; }
+      .section { padding: 48px 20px; }
+      .footer { flex-direction: column; gap: 14px; text-align: center; }
     }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <header class="hero">
-      <h1>PulseMap SDOH Advocate</h1>
-      <p class="lead">
-        A nationwide health-equity tool for GatorHack 2026. Machine learning surfaces
-        high-burden ZIP codes across six SDOH indicators, then links each community
-        to evidence-based steps residents and advocates can use.
-      </p>
-      <div class="badges">
-        <span class="badge">The Prioneer · AI for Social Good</span>
-        <span class="badge">Women in Tech</span>
-        <span class="badge">29,980 U.S. ZIP codes</span>
-      </div>
-    </header>
 
-    <p class="section-title">Explore the project</p>
-    <div class="cards">
-      <article class="card primary">
-        <div class="card-icon">🗺️</div>
-        <h2>Interactive Map</h2>
-        <p>
-          Search any ZIP, city, or state. Click markers for community profiles,
-          top concerns, K-Means equity tiers, and suggested actions.
-        </p>
-        <a class="btn" href="health_map.html">Open PulseMap →</a>
-      </article>
-
-      <article class="card">
-        <div class="card-icon">📋</div>
-        <h2>Action Guide</h2>
-        <p>
-          Evidence-based steps for all six metrics, with curated sources and
-          links to APA therapy finder and USDA nutrition programs.
-        </p>
-        <a class="btn" href="action_guide.html">Read Action Guide →</a>
-      </article>
-
-      <article class="card">
-        <div class="card-icon">🤖</div>
-        <h2>K-Means Visualization</h2>
-        <p>
-          Animated view of how scikit-learn clusters ZIP codes into four equity
-          tiers from Low Risk to Severe Disparity.
-        </p>
-        <a class="btn" href="kmeans_viz.html">View ML Demo →</a>
-      </article>
+  <!-- NAV -->
+  <nav class="nav">
+    <a href="index.html" class="nav-logo">
+      <span class="nav-dot"></span>
+      Public Health Dashboard Map
+    </a>
+    <ul class="nav-links">
+      <li><a href="#problem">The problem</a></li>
+      <li><a href="#how">How it works</a></li>
+      <li><a href="#solutions">Solutions</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="action_guide.html" class="btn btn-outline">View guides</a>
+      <a href="health_map.html" class="btn btn-primary">Explore the map</a>
     </div>
+  </nav>
 
-    <p class="section-title">How it works</p>
-    <div class="flow">
-      <div class="flow-step">
-        <strong>1 · Detect</strong>
-        K-Means on six SDOH rates clusters ~30,000 ZIP codes into equity tiers.
+  <!-- HERO -->
+  <section>
+    <div class="hero">
+      <div>
+        <div class="hero-eyebrow fade-up">
+          <span class="hero-eyebrow-dot"></span>
+          GatorHack 2026 · AI for Social Good
+        </div>
+        <h1 class="fade-up delay-1">Where does health need hit <em>hardest?</em></h1>
+        <p class="hero-sub fade-up delay-2">
+          Public Health Dashboard Map covers nearly 30,000 US ZIP codes across six indicators: asthma, diabetes, uninsurance, obesity, depression, and food insecurity. Identify priority communities, compare areas to national benchmarks, and connect each problem to evidence-based solutions.
+        </p>
+        <div class="hero-btns fade-up delay-3">
+          <a href="health_map.html" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Explore the map
+          </a>
+          <a href="action_guide.html" class="btn btn-outline">
+            View solution guides
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </div>
       </div>
-      <div class="flow-step">
-        <strong>2 · Prioritize</strong>
-        Each popup highlights the top two local concerns above the U.S. median.
-      </div>
-      <div class="flow-step">
-        <strong>3 · Act</strong>
-        Evidence-based steps connect food, coverage, and chronic-disease risks.
+
+      <!-- MAP MOCK -->
+      <div class="map-mock fade-up delay-4">
+        <div class="map-inner">
+          <svg width="100%" height="100%" viewBox="0 0 500 375" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;opacity:0.55;" aria-hidden="true">
+            <path d="M70,155 Q90,90 175,78 Q250,66 295,100 Q335,122 370,110 Q395,103 408,120 L400,225 Q358,238 312,215 Q278,198 245,210 Q198,228 155,222 Q108,215 78,238 Z" fill="#c8ddb8"/>
+            <path d="M78,238 Q108,215 155,222 Q198,228 245,210 Q278,198 312,215 L308,275 Q268,285 222,280 Q175,275 130,268 Q98,262 82,252 Z" fill="#b8d0a8"/>
+          </svg>
+        </div>
+
+        <!-- dots -->
+        <div style="position:absolute;inset:0;pointer-events:none;" aria-hidden="true">
+          <div class="map-dot" style="width:16px;height:16px;background:#e05c2e;top:38%;left:42%;animation-delay:0s;"></div>
+          <div class="map-dot" style="width:11px;height:11px;background:#e05c2e;top:54%;left:29%;animation-delay:0.5s;"></div>
+          <div class="map-dot" style="width:9px;height:9px;background:#e8a040;top:30%;left:66%;animation-delay:0.9s;"></div>
+          <div class="map-dot" style="width:13px;height:13px;background:#e05c2e;top:61%;left:57%;animation-delay:1.3s;"></div>
+          <div class="map-dot" style="width:8px;height:8px;background:#4a9e3f;top:43%;left:21%;animation-delay:0.3s;"></div>
+          <div class="map-dot" style="width:10px;height:10px;background:#4a9e3f;top:27%;left:51%;animation-delay:1.7s;"></div>
+          <div class="map-dot" style="width:7px;height:7px;background:#e8a040;top:49%;left:77%;animation-delay:0.7s;"></div>
+          <div class="map-dot" style="width:12px;height:12px;background:#e05c2e;top:67%;left:44%;animation-delay:2.1s;"></div>
+          <div class="map-dot" style="width:8px;height:8px;background:#4a9e3f;top:34%;left:82%;animation-delay:1.1s;"></div>
+          <div class="map-dot" style="width:10px;height:10px;background:#e8a040;top:73%;left:63%;animation-delay:0.2s;"></div>
+          <div class="map-dot" style="width:7px;height:7px;background:#4a9e3f;top:47%;left:89%;animation-delay:1.9s;"></div>
+          <div class="map-dot" style="width:9px;height:9px;background:#e05c2e;top:20%;left:38%;animation-delay:0.6s;"></div>
+          <div class="map-dot" style="width:6px;height:6px;background:#4a9e3f;top:58%;left:15%;animation-delay:1.4s;"></div>
+        </div>
+
+        <!-- legend -->
+        <div class="map-legend">
+          <div class="legend-pill"><div class="legend-dot" style="background:#4a9e3f;"></div>Lower need</div>
+          <div class="legend-pill"><div class="legend-dot" style="background:#e8a040;"></div>Moderate</div>
+          <div class="legend-pill"><div class="legend-dot" style="background:#e05c2e;"></div>Higher need</div>
+        </div>
+
+        <!-- counter -->
+        <div class="map-counter">
+          <span class="map-counter-num">29,980</span>
+          <span class="map-counter-label">ZIP codes tracked</span>
+        </div>
       </div>
     </div>
+  </section>
 
-    <p class="section-title">Six health indicators</p>
-    <div class="metrics">
-      <span class="metric-pill">🫁 Asthma</span>
-      <span class="metric-pill">🩸 Diabetes</span>
-      <span class="metric-pill">🛡️ Uninsured</span>
-      <span class="metric-pill">⚖️ Obesity</span>
-      <span class="metric-pill">🧠 Depression</span>
-      <span class="metric-pill">🍎 Food Insecurity</span>
+  <!-- STAT STRIP -->
+  <div class="stat-strip">
+    <div class="stat-strip-inner">
+      <div class="stat-item">
+        <span class="stat-num">29,980</span>
+        <span class="stat-label">ZIP codes mapped</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">6</span>
+        <span class="stat-label">health indicators</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">6</span>
+        <span class="stat-label">evidence-based guides</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">CDC</span>
+        <span class="stat-label">validated source data</span>
+      </div>
     </div>
-
-    <footer class="footer">
-      GatorHack 2026 ·
-      <a href="https://github.com/stephanie313/GatorHacks26" target="_blank" rel="noopener">View on GitHub</a>
-    </footer>
   </div>
+
+  <!-- DATA TABLE -->
+  <section class="section">
+    <div class="section-label">National snapshot</div>
+    <h2>Health indicators across the US</h2>
+    <p class="section-sub">Each row shows a health challenge tracked across ZIP codes nationwide. Badge color reflects severity relative to national averages.</p>
+
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Indicator</th>
+            <th>Average (mean)</th>
+            <th>Median</th>
+            <th>ZIPs with data</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span style="margin-right:8px;">🫁</span><span class="indicator-name">Asthma</span></td>
+            <td><span class="rate-badge rate-mid">10.75%</span></td>
+            <td class="muted">10.70%</td>
+            <td class="muted">29,980</td>
+          </tr>
+          <tr>
+            <td><span style="margin-right:8px;">🩸</span><span class="indicator-name">Diabetes</span></td>
+            <td><span class="rate-badge rate-high">13.01%</span></td>
+            <td class="muted">12.70%</td>
+            <td class="muted">29,980</td>
+          </tr>
+          <tr>
+            <td><span style="margin-right:8px;">🛡️</span><span class="indicator-name">Uninsured</span></td>
+            <td><span class="rate-badge rate-low">9.95%</span></td>
+            <td class="muted">8.60%</td>
+            <td class="muted">29,980</td>
+          </tr>
+          <tr>
+            <td><span style="margin-right:8px;">⚖️</span><span class="indicator-name">Obesity</span></td>
+            <td><span class="rate-badge rate-vhigh">35.85%</span></td>
+            <td class="muted">36.70%</td>
+            <td class="muted">29,980</td>
+          </tr>
+          <tr>
+            <td><span style="margin-right:8px;">🧠</span><span class="indicator-name">Depression</span></td>
+            <td><span class="rate-badge rate-high">23.03%</span></td>
+            <td class="muted">23.00%</td>
+            <td class="muted">29,980</td>
+          </tr>
+          <tr>
+            <td><span style="margin-right:8px;">🍎</span><span class="indicator-name">Food insecurity</span></td>
+            <td><span class="rate-badge rate-high">15.69%</span></td>
+            <td class="muted">13.50%</td>
+            <td class="muted">24,233</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- THE PROBLEM -->
+  <section class="section" id="problem">
+    <div class="section-label">The problem</div>
+    <h2>Health outcomes are not equal<br>across communities</h2>
+    <p class="section-sub">Chronic disease and lack of insurance cluster in specific ZIP codes and states. Without seeing where disparities concentrate, public health teams, clinics, and policymakers cannot target interventions where they matter most.</p>
+
+    <div class="problem-grid">
+      <div class="problem-card asthma">
+        <span class="problem-emoji">🫁</span>
+        <div class="problem-title">Asthma burden</div>
+        <p class="problem-text">Respiratory disease rates vary widely by region — from environmental exposure to access to specialty care. Hotspots often overlap with pollution and poverty.</p>
+      </div>
+      <div class="problem-card diabetes">
+        <span class="problem-emoji">⚖️</span>
+        <div class="problem-title">Diabetes & obesity</div>
+        <p class="problem-text">Type 2 diabetes tracks with obesity, diet, and physical inactivity. Community-level prevention programs can reduce long-term chronic disease costs significantly.</p>
+      </div>
+      <div class="problem-card coverage">
+        <span class="problem-emoji">🛡️</span>
+        <div class="problem-title">Coverage gaps</div>
+        <p class="problem-text">Uninsured adults delay care and rely on emergency services. High-uninsurance areas need enrollment outreach and community health center partnerships.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- HOW IT WORKS -->
+  <section class="section" id="how">
+    <div class="section-label">How it works</div>
+    <h2>From data to action in three steps</h2>
+    <p class="section-sub">The interactive map turns CDC health data into decisions you can act on.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-arrow" aria-hidden="true">→</div>
+        <span class="step-num">1</span>
+        <div class="step-title">Explore & filter</div>
+        <p class="step-text">Search by city, ZIP, or state. Color the map by any of six SDOH indicators or a combined health burden score.</p>
+      </div>
+      <div class="step">
+        <div class="step-arrow" aria-hidden="true">→</div>
+        <span class="step-num">2</span>
+        <div class="step-title">Find priority areas</div>
+        <p class="step-text">One click surfaces ZIP codes with the highest burden and population impact. Compare each area to national and state averages.</p>
+      </div>
+      <div class="step">
+        <span class="step-num">3</span>
+        <div class="step-title">Apply solutions</div>
+        <p class="step-text">Each area links to evidence-based action steps matched to its top concerns — with sources, resource links, and a full printable action guide.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- SOLUTIONS -->
+  <section class="section" id="solutions">
+    <div class="section-label">Evidence-based solutions</div>
+    <h2>Research guides for each health challenge</h2>
+    <p class="section-sub">When you select an area on the map, we recommend the solution PDF for its highest-rate problem.</p>
+
+    <div class="solutions-grid">
+      <div class="sol-card">
+        <div class="sol-header">
+          <span class="sol-tag">Asthma</span>
+          <div class="sol-title">Digitally Mapping the Asthma Journey</div>
+        </div>
+        <div class="sol-body">
+          <p class="sol-sub">Digital tools for precision asthma care from diagnosis to remission.</p>
+          <a href="action_guide.html#asthma" class="sol-link">
+            Open guide
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </a>
+        </div>
+      </div>
+      <div class="sol-card">
+        <div class="sol-header">
+          <span class="sol-tag">Diabetes</span>
+          <div class="sol-title">Strategies for Preventing Obesity</div>
+        </div>
+        <div class="sol-body">
+          <p class="sol-sub">BMJ guide on population-level obesity and diabetes prevention.</p>
+          <a href="action_guide.html#diabetes" class="sol-link">
+            Open guide
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </a>
+        </div>
+      </div>
+      <div class="sol-card">
+        <div class="sol-header">
+          <span class="sol-tag">Access</span>
+          <div class="sol-title">Improving Primary Care Treatment</div>
+        </div>
+        <div class="sol-body">
+          <p class="sol-sub">Ten strategies for better depression and anxiety care in family medicine.</p>
+          <a href="action_guide.html#depression" class="sol-link">
+            Open guide
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+    <p style="margin-top:20px;font-size:13px;color:var(--ink-3);">
+      Also explore the
+      <a href="kmeans_viz.html" style="color:var(--green-mid);font-weight:600;">K-Means ML visualization</a>
+      showing how ZIP codes cluster into equity tiers.
+    </p>
+  </section>
+
+  <!-- CTA DARK -->
+  <div class="cta-dark">
+    <div class="cta-dark-inner">
+      <h2>Every ZIP code has a story.<br><em>Yours might need telling.</em></h2>
+      <p>Search your community. See where your neighborhood stands. Share what you find with local advocates, clinics, and policymakers who can act on it.</p>
+      <a href="health_map.html" class="btn btn-green-light">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right:2px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Open the map
+      </a>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <p class="footer-text">
+      <strong>Public Health Dashboard Map</strong> · PulseMap SDOH Advocate · GatorHack 2026 · Data: CDC PLACES
+    </p>
+    <div class="track-badges">
+      <span class="track-badge ai">AI for Social Good</span>
+      <span class="track-badge wit">Women in Tech</span>
+    </div>
+  </footer>
+
 </body>
 </html>
