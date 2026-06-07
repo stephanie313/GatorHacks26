@@ -128,19 +128,9 @@ Open:
 
 ---
 
-## Deploy to GitHub Pages
-
-1. Push the repo to GitHub (`main` branch).
-2. In **Settings → Pages**, set source to **Deploy from branch** → `main` → `/ (root)`.
-3. Ensure `index.html` is at the repo root (serves as the site home).
-4. After regenerating with `main.py`, commit and push `health_map.html`, `action_guide.html`, and `kmeans_viz_data.json`.
-
----
-
-## GatorHack 2026 tracks
+## GatorHack 2026 track
 
 - **The Prioneer (AI for Social Good)** — ML-driven detection of subnational health inequities and an advocacy layer that turns data into community action.
-- **Women in Tech** — Plain-language health equity tools that help families navigate local SDOH risks and care barriers.
 
 ---
 
