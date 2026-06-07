@@ -162,6 +162,27 @@
       background: #ede8df;
       aspect-ratio: 4 / 3;
       box-shadow: 0 8px 40px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06);
+      transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .map-mock-link {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+      cursor: pointer;
+    }
+
+    .map-mock-link:hover .map-mock,
+    .map-mock-link:focus-visible .map-mock {
+      transform: translateY(-3px);
+      box-shadow: 0 14px 48px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.08);
+      border-color: rgba(45, 90, 39, 0.28);
+    }
+
+    .map-mock-link:focus-visible {
+      outline: 2px solid var(--green-mid);
+      outline-offset: 4px;
+      border-radius: var(--radius-lg);
     }
 
     .map-inner {
@@ -573,15 +594,11 @@
   <section>
     <div class="hero">
       <div>
-        <div class="hero-eyebrow fade-up">
-          <span class="hero-eyebrow-dot"></span>
-          GatorHack 2026 · AI for Social Good
-        </div>
-        <h1 class="fade-up delay-1">Where does health need hit <em>hardest?</em></h1>
-        <p class="hero-sub fade-up delay-2">
+        <h1 class="fade-up">Where does health need hit <em>hardest?</em></h1>
+        <p class="hero-sub fade-up delay-1">
           Public Health Dashboard Map covers nearly 30,000 US ZIP codes across six indicators: asthma, diabetes, uninsurance, obesity, depression, and food insecurity. Identify priority communities, compare areas to national benchmarks, and connect each problem to evidence-based solutions.
         </p>
-        <div class="hero-btns fade-up delay-3">
+        <div class="hero-btns fade-up delay-2">
           <a href="health_map.html" class="btn btn-primary">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
             Explore the map
@@ -594,7 +611,8 @@
       </div>
 
       <!-- MAP MOCK -->
-      <div class="map-mock fade-up delay-4">
+      <a href="health_map.html" class="map-mock-link fade-up delay-3" aria-label="Open interactive map">
+      <div class="map-mock">
         <div class="map-inner">
           <svg width="100%" height="100%" viewBox="0 0 500 375" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;opacity:0.55;" aria-hidden="true">
             <path d="M70,155 Q90,90 175,78 Q250,66 295,100 Q335,122 370,110 Q395,103 408,120 L400,225 Q358,238 312,215 Q278,198 245,210 Q198,228 155,222 Q108,215 78,238 Z" fill="#c8ddb8"/>
@@ -632,6 +650,7 @@
           <span class="map-counter-label">ZIP codes tracked</span>
         </div>
       </div>
+      </a>
     </div>
   </section>
 
