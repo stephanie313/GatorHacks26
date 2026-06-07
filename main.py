@@ -21,6 +21,8 @@ DEFAULT_ACTION_GUIDE = Path(__file__).parent / "action_guide.html"
 KMEANS_VIZ_DATA_PATH = Path(__file__).parent / "kmeans_viz_data.json"
 KMEANS_VIZ_SAMPLE_SIZE = 1200
 DEFAULT_ZIP = "98101"  # Seattle, WA
+PRODUCT_NAME = "Public Health Dashboard Map"
+PRODUCT_TAGLINE = "Public Health Dashboard Map · SDOH Advocate"
 MAX_VISIBLE_MARKERS = 1500
 MAX_CITY_CLUSTERS = 1000
 STATE_ZOOM_THRESHOLD = 6
@@ -43,7 +45,7 @@ EQUITY_TIER_NAMES = [
 ]
 EQUITY_TIER_REPORTS: dict[str, str] = {
     "Low Risk": (
-        "PulseMap's local K-Means model classifies {city} in the "
+        "The Public Health Dashboard Map's local K-Means model classifies {city} in the "
         "{tier} equity tier based on asthma, diabetes, uninsured, obesity, "
         "depression, and food insecurity rates across ~30,000 U.S. ZIP codes. "
         "Baseline indicators in this cluster "
@@ -52,7 +54,7 @@ EQUITY_TIER_REPORTS: dict[str, str] = {
         "can help preserve these outcomes."
     ),
     "Moderate Risk": (
-        "PulseMap's local K-Means model places {city} in the "
+        "The Public Health Dashboard Map's local K-Means model places {city} in the "
         "{tier} equity tier, signaling modest but meaningful SDOH pressure. "
         "Multiple SDOH and health burden indicators here sit above the lowest-risk "
         "cluster but below the most acute disparities. Targeted screening, "
@@ -60,7 +62,7 @@ EQUITY_TIER_REPORTS: dict[str, str] = {
         "prevent escalation."
     ),
     "High Risk": (
-        "PulseMap's local K-Means model assigns {city} to the "
+        "The Public Health Dashboard Map's local K-Means model assigns {city} to the "
         "{tier} equity tier, where multiple health drivers cluster at "
         "elevated levels. Residents face compounded challenges across respiratory "
         "health, chronic disease, and insurance access that warrant coordinated "
@@ -68,7 +70,7 @@ EQUITY_TIER_REPORTS: dict[str, str] = {
         "cross-agency referral networks should be prioritized."
     ),
     "Severe Disparity": (
-        "PulseMap's local K-Means model identifies {city} in the "
+        "The Public Health Dashboard Map's local K-Means model identifies {city} in the "
         "{tier} tier—the highest-risk cluster in our four-group segmentation. "
         "Compounding chronic, mental health, coverage, and nutrition burdens point to systemic "
         "barriers that amplify one another across this community. Immediate "
@@ -232,7 +234,7 @@ SDOH_CONNECTION_INSIGHTS: list[dict[str, list[str] | str]] = [
     },
 ]
 SDOH_CONNECTION_NARRATIVE = (
-    "PulseMap treats these six indicators as a system—not isolated statistics. "
+    "The Public Health Dashboard Map treats these six indicators as a system—not isolated statistics. "
     "Poverty drives food insecurity; food stress raises diabetes, obesity, and depression risk; "
     "and being uninsured makes every chronic condition harder to manage. K-Means clustering "
     "surfaces where these burdens stack up, and the Action Guide maps each concern to steps "
@@ -299,7 +301,7 @@ US_STATE_NAMES: dict[str, str] = {
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Generate an interactive PulseMap SDOH health equity map."
+        description=f"Generate an interactive {PRODUCT_TAGLINE} health equity map."
     )
     parser.add_argument(
         "--zip",
@@ -524,7 +526,7 @@ def add_map_legend(
         font-family: Inter, system-ui, sans-serif; font-size: 12px;
         line-height: 1.5; border: 1px solid rgba(0,0,0,0.08);
     ">
-        <div style="font-weight: 700; margin-bottom: 6px;">PulseMap SDOH Advocate</div>
+        <div style="font-weight: 700; margin-bottom: 6px;">{PRODUCT_TAGLINE}</div>
         <div style="color: #555; margin-bottom: 8px;">
             {total_zips:,} ZIPs nationwide &mdash; drag &amp; zoom to explore<br>
             Home ZIP: {html.escape(center_city)} ({center_zip:05d})
@@ -592,7 +594,7 @@ def add_map_legend(
                 background:#f4f7f4; border:1px solid #dfe8df; color:#3d4f3d;
                 font-size:11px; line-height:1.55; flex-shrink:0;
             ">
-                PulseMap uses <strong>machine learning</strong> to flag high-burden ZIP codes, then links each
+                The Public Health Dashboard Map uses <strong>machine learning</strong> to flag high-burden ZIP codes, then links each
                 community's top concerns with <strong>evidence-based steps</strong> from your six sources—showing
                 how food, coverage, and chronic-disease risks often compound together.
             </div>
@@ -627,7 +629,7 @@ def add_map_legend(
             line-height:1.55; color:#444;
         ">
             <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-                <div style="font-weight:700; font-size:12px; color:#36454F;">How to read PulseMap</div>
+                <div style="font-weight:700; font-size:12px; color:#36454F;">How to read this map</div>
                 <button id="pulsemap-help-close" type="button" aria-label="Close help"
                     style="
                         width:22px; height:22px; border:none; border-radius:11px;
@@ -2254,7 +2256,7 @@ def add_viewport_marker_script(
       font-size: 8.5px;
       color: #c4b5a0;
       letter-spacing: 0.2px;
-    ">PulseMap SDOH Advocate · GatorHack 2026</div>
+    ">{PRODUCT_TAGLINE} · GatorHack 2026</div>
   </div>
 </div>`;
         }}
@@ -3239,7 +3241,7 @@ def write_action_guide_html(output_path: Path) -> None:
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>PulseMap Action Guide — Evidence-Based SDOH Steps</title>
+  <title>{html.escape(PRODUCT_NAME)} Action Guide — Evidence-Based SDOH Steps</title>
   <style>
     :root {{
       --ink: #36454F;
@@ -3356,15 +3358,15 @@ def write_action_guide_html(output_path: Path) -> None:
 <body>
   <div class="wrap">
     <header class="hero">
-      <h1>PulseMap Action Guide</h1>
+      <h1>{html.escape(PRODUCT_NAME)} Action Guide</h1>
       <p>
-        Practical, plain-language steps for the six SDOH health indicators PulseMap tracks.
+        Practical, plain-language steps for the six SDOH health indicators {html.escape(PRODUCT_NAME)} tracks.
         Every section is grounded in a source you provided—from clinical papers to community policy guides.
       </p>
       <span class="track">The Prioneer · AI for Social Good · underserved communities</span>
     </header>
 
-    <section class="flow" aria-label="How PulseMap connects data to action">
+    <section class="flow" aria-label="How {html.escape(PRODUCT_NAME)} connects data to action">
       <div class="flow-step">
         <strong>1 · Detect</strong>
         K-Means clusters ~30,000 ZIP codes on six burden rates to surface equity tiers.

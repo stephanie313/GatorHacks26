@@ -1,6 +1,6 @@
 # Product Requirements Document (PRD)
 
-## Project Name: PulseMap SDOH Advocate
+## Project Name: Public Health Dashboard Map · SDOH Advocate
 
 ## 1. Target Tracks (GatorHack 2026)
 
@@ -9,7 +9,7 @@
 
 ## 2. Product Overview & User Flow
 
-PulseMap SDOH Advocate is a local Python script that maps regional health disparities.
+Public Health Dashboard Map · SDOH Advocate is a local Python script that maps regional health disparities.
 
 1. The user inputs a location (a 5-digit Zip Code).
 2. The system reads local merged datasets containing population numbers and core health metrics (Asthma, Diabetes, Insurance access).

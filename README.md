@@ -1,4 +1,4 @@
-# PulseMap SDOH Advocate · GatorHack 2026
+# Public Health Dashboard Map · SDOH Advocate · GatorHack 2026
 
 Nationwide ZIP-level health equity map with K-Means clustering and evidence-based action guides.
 
