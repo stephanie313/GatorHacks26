@@ -112,12 +112,56 @@
       color: var(--muted);
     }
     .footer a { color: var(--ink); font-weight: 600; }
+    .page-nav {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 20px;
+      background: rgba(250, 248, 245, 0.94);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+    }
+    .page-nav a,
+    .page-nav button {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-family: Inter, system-ui, sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+    }
+    .page-nav button {
+      background: #5c6b73;
+      color: #fff;
+      border-color: #5c6b73;
+    }
+    .page-nav a.map-link {
+      margin-left: auto;
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
     @media (max-width: 720px) {
       .flow { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
+  <nav class="page-nav" aria-label="Page navigation">
+    <a href="index.html">← Home</a>
+    <button type="button" id="guide-back-btn">← Back</button>
+    <a href="health_map.html" class="map-link">Open map</a>
+  </nav>
   <div class="wrap">
     <header class="hero">
       <h1>Public Health Dashboard Map Action Guide</h1>
@@ -200,10 +244,20 @@
     </article>
 
     <p class="footer">
-      Return to the interactive map:
-      <a href="health_map.html">health_map.html</a>.
-      ZIP popups show the top two local concerns plus connected SDOH insights when burdens overlap.
+      <a href="index.html">← Home</a>
+      ·
+      <a href="health_map.html">Open interactive map</a>
+      · ZIP popups show the top two local concerns plus connected SDOH insights when burdens overlap.
     </p>
   </div>
+  <script>
+    document.getElementById("guide-back-btn")?.addEventListener("click", () => {
+      if (window.history.length > 1) {
+        history.back();
+        return;
+      }
+      window.location.href = "index.html";
+    });
+  </script>
 </body>
 </html>

@@ -23,6 +23,7 @@ KMEANS_VIZ_SAMPLE_SIZE = 1200
 DEFAULT_ZIP = "98101"  # Seattle, WA
 PRODUCT_NAME = "Public Health Dashboard Map"
 PRODUCT_TAGLINE = "Public Health Dashboard Map · SDOH Advocate"
+HOME_PAGE = "index.html"
 MAX_VISIBLE_MARKERS = 1500
 MAX_CITY_CLUSTERS = 1000
 STATE_ZOOM_THRESHOLD = 6
@@ -563,6 +564,21 @@ def add_map_legend(
         </div>
     </div>
     <div id="pulsemap-tools" style="position:fixed; top:10px; right:10px; z-index:1001; display:flex; gap:6px; align-items:flex-start;">
+    <a id="pulsemap-home-btn" href="{HOME_PAGE}" aria-label="Go to home page"
+        style="
+            height:32px; padding:0 11px; border:1px solid rgba(0,0,0,0.1); border-radius:999px;
+            background:#fff; color:#36454F; font-family:system-ui,sans-serif;
+            font-size:11px; font-weight:700; line-height:1; cursor:pointer;
+            box-shadow:0 4px 14px rgba(0,0,0,0.12); letter-spacing:0.2px; text-decoration:none;
+            display:inline-flex; align-items:center;
+        ">← Home</a>
+    <button id="pulsemap-back-btn" type="button" aria-label="Go back to previous page"
+        style="
+            height:32px; padding:0 11px; border:none; border-radius:999px;
+            background:#5c6b73; color:#fff; font-family:system-ui,sans-serif;
+            font-size:11px; font-weight:700; line-height:1; cursor:pointer;
+            box-shadow:0 4px 14px rgba(0,0,0,0.16); letter-spacing:0.2px;
+        ">← Back</button>
     <div id="pulsemap-guide" style="position:relative;">
         <button id="pulsemap-guide-btn" type="button" aria-label="Action guide"
             aria-expanded="false" aria-controls="pulsemap-guide-panel"
@@ -1837,6 +1853,7 @@ def add_viewport_marker_script(
             const clearBtn = document.getElementById("location-search-clear");
             const metricSelect = document.getElementById("metric-filter");
             const aboveNationalToggle = document.getElementById("above-national-filter");
+            const backBtn = document.getElementById("pulsemap-back-btn");
             const helpBtn = document.getElementById("pulsemap-help-btn");
             const helpPanel = document.getElementById("pulsemap-help-panel");
             const helpClose = document.getElementById("pulsemap-help-close");
@@ -1847,6 +1864,16 @@ def add_viewport_marker_script(
             populateGuidePanel();
             wireGuidePanelResize();
             wireActionModalEvents();
+
+            if (backBtn) {{
+                backBtn.addEventListener("click", () => {{
+                    if (window.history.length > 1) {{
+                        history.back();
+                        return;
+                    }}
+                    window.location.href = "{HOME_PAGE}";
+                }});
+            }}
 
             if (searchBtn) {{
                 searchBtn.addEventListener("mousedown", (event) => {{
@@ -3350,12 +3377,56 @@ def write_action_guide_html(output_path: Path) -> None:
       color: var(--muted);
     }}
     .footer a {{ color: var(--ink); font-weight: 600; }}
+    .page-nav {{
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 20px;
+      background: rgba(250, 248, 245, 0.94);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+    }}
+    .page-nav a,
+    .page-nav button {{
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-family: Inter, system-ui, sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+    }}
+    .page-nav button {{
+      background: #5c6b73;
+      color: #fff;
+      border-color: #5c6b73;
+    }}
+    .page-nav a.map-link {{
+      margin-left: auto;
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }}
     @media (max-width: 720px) {{
       .flow {{ grid-template-columns: 1fr; }}
     }}
   </style>
 </head>
 <body>
+  <nav class="page-nav" aria-label="Page navigation">
+    <a href="{HOME_PAGE}">← Home</a>
+    <button type="button" id="guide-back-btn">← Back</button>
+    <a href="health_map.html" class="map-link">Open map</a>
+  </nav>
   <div class="wrap">
     <header class="hero">
       <h1>{html.escape(PRODUCT_NAME)} Action Guide</h1>
@@ -3390,11 +3461,21 @@ def write_action_guide_html(output_path: Path) -> None:
     {''.join(metric_cards)}
 
     <p class="footer">
-      Return to the interactive map:
-      <a href="health_map.html">health_map.html</a>.
-      ZIP popups show the top two local concerns plus connected SDOH insights when burdens overlap.
+      <a href="{HOME_PAGE}">← Home</a>
+      ·
+      <a href="health_map.html">Open interactive map</a>
+      · ZIP popups show the top two local concerns plus connected SDOH insights when burdens overlap.
     </p>
   </div>
+  <script>
+    document.getElementById("guide-back-btn")?.addEventListener("click", () => {{
+      if (window.history.length > 1) {{
+        history.back();
+        return;
+      }}
+      window.location.href = {json.dumps(HOME_PAGE)};
+    }});
+  </script>
 </body>
 </html>
 """
