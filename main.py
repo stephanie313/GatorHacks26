@@ -24,6 +24,7 @@ DEFAULT_ZIP = "98101"  # Seattle, WA
 PRODUCT_NAME = "Public Health Dashboard Map"
 PRODUCT_TAGLINE = "Public Health Dashboard Map · SDOH Advocate"
 HOME_PAGE = "index.html"
+PAGE_NAV_TOP_OFFSET = 62  # px below viewport top — clears sticky nav + shadow
 MAX_VISIBLE_MARKERS = 1500
 MAX_CITY_CLUSTERS = 1000
 STATE_ZOOM_THRESHOLD = 6
@@ -501,7 +502,7 @@ def add_map_legend(
         </span>
     </nav>
     <div id="pulsemap-controls" style="
-        position: fixed; top: 54px; left: 10px; z-index: 1001;
+        position: fixed; top: {PAGE_NAV_TOP_OFFSET}px; left: 10px; z-index: 1001;
         width: 258px; background: white; padding: 12px 14px;
         border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.12);
         font-family: Inter, system-ui, sans-serif; font-size: 12px;
@@ -586,7 +587,7 @@ def add_map_legend(
             </div>
         </div>
     </div>
-    <div id="pulsemap-tools" style="position:fixed; top:54px; right:10px; z-index:1001; display:flex; gap:6px; align-items:flex-start;">
+    <div id="pulsemap-tools" style="position:fixed; top:{PAGE_NAV_TOP_OFFSET}px; right:10px; z-index:1001; display:flex; gap:6px; align-items:flex-start;">
     <div id="pulsemap-guide" style="position:relative;">
         <button id="pulsemap-guide-btn" type="button" aria-label="Action guide"
             aria-expanded="false" aria-controls="pulsemap-guide-panel"
