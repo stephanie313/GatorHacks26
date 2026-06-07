@@ -196,9 +196,57 @@
       font-size: 0.75rem;
       color: #9ca3af;
     }
+
+    .page-nav {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 20px;
+      background: rgba(250, 248, 245, 0.94);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .page-nav a,
+    .page-nav button {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-family: Inter, system-ui, sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+    }
+
+    .page-nav button {
+      background: #5c6b73;
+      color: #fff;
+      border-color: #5c6b73;
+    }
+
+    .page-nav a.map-link {
+      margin-left: auto;
+      background: var(--ink);
+      color: #fff;
+      border-color: var(--ink);
+    }
   </style>
 </head>
 <body>
+  <nav class="page-nav" aria-label="Page navigation">
+    <a href="index.html">← Home</a>
+    <button type="button" id="kmeans-back-btn">← Go back</button>
+    <a href="health_map.html" class="map-link">Open map</a>
+  </nav>
   <div class="shell">
     <header>
       <div>
@@ -669,6 +717,15 @@
       .catch((error) => {
         updateStatus(error.message);
       });
+  </script>
+  <script>
+    document.getElementById("kmeans-back-btn")?.addEventListener("click", () => {
+      if (window.history.length > 1) {
+        history.back();
+        return;
+      }
+      window.location.href = "index.html";
+    });
   </script>
 </body>
 </html>

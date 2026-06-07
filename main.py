@@ -477,8 +477,31 @@ def add_map_legend(
         )
     )
     legend_html = f"""
+    <nav id="pulsemap-page-nav" aria-label="Page navigation" style="
+        position: fixed; top: 0; left: 0; right: 0; z-index: 1002;
+        display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+        background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        font-family: Inter, system-ui, sans-serif;
+    ">
+        <a href="{HOME_PAGE}" aria-label="Go to home page" style="
+            display: inline-flex; align-items: center; padding: 8px 14px;
+            border-radius: 999px; font-size: 12px; font-weight: 600;
+            text-decoration: none; cursor: pointer;
+            border: 1px solid rgba(0, 0, 0, 0.1); background: #fff; color: #36454F;
+        ">← Home</a>
+        <button type="button" id="pulsemap-back-btn" aria-label="Go back to previous page" style="
+            display: inline-flex; align-items: center; padding: 8px 14px;
+            border-radius: 999px; font-size: 12px; font-weight: 600;
+            cursor: pointer; border: none; background: #5c6b73; color: #fff;
+        ">← Go back</button>
+        <span style="margin-left: auto; font-size: 11px; font-weight: 600; color: #36454F;">
+            {html.escape(PRODUCT_NAME)}
+        </span>
+    </nav>
     <div id="pulsemap-controls" style="
-        position: fixed; top: 10px; left: 10px; z-index: 1001;
+        position: fixed; top: 54px; left: 10px; z-index: 1001;
         width: 258px; background: white; padding: 12px 14px;
         border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.12);
         font-family: Inter, system-ui, sans-serif; font-size: 12px;
@@ -563,22 +586,7 @@ def add_map_legend(
             </div>
         </div>
     </div>
-    <div id="pulsemap-tools" style="position:fixed; top:10px; right:10px; z-index:1001; display:flex; gap:6px; align-items:flex-start;">
-    <a id="pulsemap-home-btn" href="{HOME_PAGE}" aria-label="Go to home page"
-        style="
-            height:32px; padding:0 11px; border:1px solid rgba(0,0,0,0.1); border-radius:999px;
-            background:#fff; color:#36454F; font-family:system-ui,sans-serif;
-            font-size:11px; font-weight:700; line-height:1; cursor:pointer;
-            box-shadow:0 4px 14px rgba(0,0,0,0.12); letter-spacing:0.2px; text-decoration:none;
-            display:inline-flex; align-items:center;
-        ">← Home</a>
-    <button id="pulsemap-back-btn" type="button" aria-label="Go back to previous page"
-        style="
-            height:32px; padding:0 11px; border:none; border-radius:999px;
-            background:#5c6b73; color:#fff; font-family:system-ui,sans-serif;
-            font-size:11px; font-weight:700; line-height:1; cursor:pointer;
-            box-shadow:0 4px 14px rgba(0,0,0,0.16); letter-spacing:0.2px;
-        ">← Back</button>
+    <div id="pulsemap-tools" style="position:fixed; top:54px; right:10px; z-index:1001; display:flex; gap:6px; align-items:flex-start;">
     <div id="pulsemap-guide" style="position:relative;">
         <button id="pulsemap-guide-btn" type="button" aria-label="Action guide"
             aria-expanded="false" aria-controls="pulsemap-guide-panel"
@@ -2556,6 +2564,7 @@ def add_viewport_marker_script(
         const POPUP_FALLBACK_WIDTH = 320;
         const SIDE_PREFERENCE = {{ right: 0, above: 1, below: 2, left: 3 }};
         const UI_OBSTACLE_SELECTORS = [
+            "#pulsemap-page-nav",
             "#pulsemap-tools",
             "#pulsemap-controls",
             "#pulsemap-legend",
@@ -3424,7 +3433,7 @@ def write_action_guide_html(output_path: Path) -> None:
 <body>
   <nav class="page-nav" aria-label="Page navigation">
     <a href="{HOME_PAGE}">← Home</a>
-    <button type="button" id="guide-back-btn">← Back</button>
+    <button type="button" id="guide-back-btn">← Go back</button>
     <a href="health_map.html" class="map-link">Open map</a>
   </nav>
   <div class="wrap">
